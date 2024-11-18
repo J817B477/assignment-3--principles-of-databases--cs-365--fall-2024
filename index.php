@@ -101,23 +101,23 @@ $title = "Student Password Locker";
 
             SET
             <select name="current-attribute" id="current-attribute">
-                <option>Site Name</option>
-                <option>URL</option>
-                <option>User Name</option>
-                <option>User First Name</option>
-                <option>User Last Name</option>
-                <option>User Email Address</option>
+                <option>site_name</option>
+                <option>url</option>
+                <option>user_name</option>
+                <option>first_name</option>
+                <option>last_name</option>
+                <option>email_address</option>
             </select>
             = <input type="text" name="new-attribute" required>
             WHERE
             <select name="query-attribute" id="query-attribute">
-                <option>Site Name</option>
-                <option>URL</option>
-                <option>User Name</option>
-                <option>First Name</option>
-                <option>Last Name</option>
-                <option>Email Address</option>
-                <option>Registration Comment</option>
+                <option>site_name</option>
+                <option>url</option>
+                <option>user_name</option>
+                <option>first_name</option>
+                <option>last_name</option>
+                <option>email_address</option>
+                <option>comment</option>
             </select>
             = <input type="text" name="pattern" required>
             <input type="hidden" name="submitted" value="2">
@@ -133,8 +133,9 @@ $title = "Student Password Locker";
                 </br>
                 VALUES:
                 </br>
-                </br>
-                <input type="text" name="artist-id" placeholder="Site Name" required>
+                <p>
+                    <input type="text" class="entry-field" placeholder="Site Name" required>
+                </p>
 
                 <p>
                     <input type="text" class="entry-field" placeholder="URL" required>
@@ -170,12 +171,12 @@ $title = "Student Password Locker";
             <legend>Delete</legend>
             Delete Registration Entry:
             <select name="current-attribute" id="current-attribute">
-                <option>Site Name</option>
-                <option>URL</option>
-                <option>User Name</option>
-                <option>User First Name</option>
-                <option>User Last Name</option>
-                <option>User Email Address</option>
+                <option>site_name</option>
+                <option>url</option>
+                <option>user_name</option>
+                <option>first_name</option>
+                <option>last_name</option>
+                <option>email_address</option>
             </select>
             = <input type="text" name="pattern" required>
             <input type="hidden" name="submitted" value="4">
