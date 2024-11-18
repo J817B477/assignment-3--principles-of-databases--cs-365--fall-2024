@@ -78,5 +78,109 @@ $title = "Student Password Locker";
     }
 
     ?>
+
+    <!-- edit these to reflect the 'student_passwords' database -->
+    <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+        <fieldset>
+            <legend>Search</legend>
+            Search for Series of Characters in Database:
+            </br>
+            </br>
+            <input type="text" name="search" autofocus required>
+            <input type="hidden" name="submitted" value="1">
+            <p><input type="submit" value="search"></p>
+        </fieldset>
+    </form>
+
+    <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>"> <!-- sends to the server itself-->
+        <fieldset>
+            <legend>Update</legend>
+            Update Existing Entry:
+            </br>
+            </br>
+
+            SET
+            <select name="current-attribute" id="current-attribute">
+                <option>Site Name</option>
+                <option>URL</option>
+                <option>User Name</option>
+                <option>User First Name</option>
+                <option>User Last Name</option>
+                <option>User Email Address</option>
+            </select>
+            = <input type="text" name="new-attribute" required>
+            WHERE
+            <select name="query-attribute" id="query-attribute">
+                <option>Site Name</option>
+                <option>URL</option>
+                <option>User Name</option>
+                <option>First Name</option>
+                <option>Last Name</option>
+                <option>Email Address</option>
+                <option>Registration Comment</option>
+            </select>
+            = <input type="text" name="pattern" required>
+            <input type="hidden" name="submitted" value="2">
+            <p><input type="submit" value="update"></p>
+        </fieldset>
+    </form>
+
+    <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+        <fieldset>
+            <legend>Insert</legend>
+            Insert New Registration
+                </br>
+                </br>
+                VALUES:
+                </br>
+                </br>
+                <input type="text" name="artist-id" placeholder="Site Name" required>
+
+                <p>
+                    <input type="text" class="entry-field" placeholder="URL" required>
+                </p>
+                <p>
+                    <input type="text" class="entry-field" placeholder="User Name" required>
+                </p>
+                <p>
+                    <input type="text" class="entry-field" placeholder="First Name" required>
+                </p>
+                <p>
+                    <input type="text" class="entry-field" placeholder="Last Name" required>
+                </p>
+                <p>
+                    <input type="text" class="entry-field" placeholder="Email Address" required>
+                </p>
+                <p>
+                    <input type="text" class="entry-field" placeholder="Email Address" required>
+                </p>
+                <p>
+                    <input type="text" class="entry-field" placeholder="Website Password" required>
+                </p>
+                <p>
+                    <input type="text" class="entry-field" placeholder="Registration Comment" required>
+                </p>
+            <input type="hidden" name="submitted" value="3">
+            <p><input type="submit" value="insert"></p>
+        </fieldset>
+    </form>
+
+    <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+        <fieldset>
+            <legend>Delete</legend>
+            Delete Registration Entry:
+            <select name="current-attribute" id="current-attribute">
+                <option>Site Name</option>
+                <option>URL</option>
+                <option>User Name</option>
+                <option>User First Name</option>
+                <option>User Last Name</option>
+                <option>User Email Address</option>
+            </select>
+            = <input type="text" name="pattern" required>
+            <input type="hidden" name="submitted" value="4">
+            <p><input type="submit" value="delete"></p>
+        </fieldset>
+    </form>
   </body>
 </html>
