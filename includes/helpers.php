@@ -1,48 +1,54 @@
 <?php
 
+// establishes PDO object globally
+$db = new PDO(
+    "mysql:host=" . DBHOST . "; dbname=" . DBNAME . ";charset=utf8mb4",
+    DBUSER
+);
+
+// facilitates search in UI
 function search($search) {
-    global $key_str, $init_vector;
+
+    global $db;
+
+    // establishes AES credentials per query
+    $db -> exec("SET @block_encryption_mode = '". AESCONFIG . "'");
+    $db -> exec("SET @key_str = '". KEY_STR . "'");
+    $db -> exec("SET @init_vector = '". INNIT_VECTOR . "'");
+
+
     try {
-        // global $key_str, $init_vector;s
-        $db = new PDO(
-            "mysql:host=" . DBHOST . "; dbname=" . DBNAME . ";charset=utf8mb4",
-            DBUSER,
-            DBPASS
-        );
-
-
-
+        //retrieves data records across all tables
         $select_query = "SELECT site_name,
                                 url,
                                 user_name,
                                 first_name,
                                 last_name,
                                 email_address,
-                                encrypted_password,
+                                CAST(AES_DECRYPT(encrypted_password,'". KEY_STR . "', '". INNIT_VECTOR . "' )AS CHAR) AS pw ,
                                 timestamp,
                                 comment
                         FROM user
-                        INNER JOIN registry USING (email_address)
-                        INNER JOIN website USING (url)
+                        INNER JOIN registry USING (user_id)
+                        INNER JOIN website USING (site_id)
                         WHERE site_name LIKE \"%{$search}%\"
                         OR url LIKE \"%{$search}%\"
                         OR first_name LIKE \"%{$search}%\"
                         OR last_name LIKE \"%{$search}%\"
                         OR email_address LIKE \"%{$search}%\"
-                        -- OR plain_text_password LIKE \"%{$search}%\"
                         OR timestamp LIKE \"%{$search}%\"
                         OR comment LIKE \"%{$search}%\"
                         ";
-        $statement  = $db -> query($select_query);
-        // $statement = $db -> prepare($select_query);
-        // $statement -> bindParam(':key_str', $key_str);
-        // $statement -> bindParam(':init_vector', $init_vector);
+
+        $statement = $db -> prepare($select_query);
+        $statement -> execute();
         $rows =  $statement -> fetchAll();
 
 
         if (count($rows) == 0) {
             return 0;
         } else {
+            // establishes html table
             echo "      <table>\n";
             echo "        <thead>\n";
             echo "          <tr>\n";
@@ -61,17 +67,7 @@ function search($search) {
 
             // Populate the table with data coming from the database...
             foreach ($rows as $row) {
-                // if(!empty($row['encrypted_password'])){
-                //     $decrypted_value = openssl_decrypt(
-                //         $row['encrypted_password'],
-                //         ENCRYPTIONMODE,
-                //         $key_str,
-                //         OPENSSL_RAW_DATA,
-                //         $init_vector
-                //     );
 
-                //     $row['encrypted_column'] = utf8_encode($decrypted_value);
-                // }
                 echo "          <tr>\n";
                 echo "            <td>" . htmlspecialchars($row[0]) . "</td>\n";
                 echo "            <td>" . htmlspecialchars($row[1]) . "</td>\n";
@@ -79,7 +75,7 @@ function search($search) {
                 echo "            <td>" . htmlspecialchars($row[3]) . "</td>\n";
                 echo "            <td>" . htmlspecialchars($row[4]) . "</td>\n";
                 echo "            <td>" . htmlspecialchars($row[5]) . "</td>\n";
-                echo "            <td>" . htmlspecialchars($row[6]) . "</td>\n";
+                echo "            <td>" . htmlspecialchars($row[6] ?? '', ENT_QUOTES, 'UTF-8') . "</td>\n";
                 echo "            <td>" . htmlspecialchars($row[7]) . "</td>\n";
                 echo "            <td>" . htmlspecialchars($row[8] ?? '', ENT_QUOTES, 'UTF-8') . "</td>\n";
                 echo "          </tr>\n";
@@ -97,45 +93,152 @@ function search($search) {
     }
 }
 
+// facilitates updates on existing record as per UI inputs
 function update($current_attribute, $new_value, $query_attribute, $pattern) {
-    try {
-        $db = new PDO(
-            "mysql:host=" . DBHOST . "; dbname=" . DBNAME . ";charset=utf8mb4",
-            DBUSER,
-            DBPASS
-        );
+try {
 
-        // handles constraint integrity violations for primary/foreign key relationships
-        if ($current_attribute == 'url'){
-            $insert_query = "INSERT IGNORE INTO website
-                            (url)
-                            VALUES
-                            (\"{$new_value}\")";
+    global $db;
 
-            $db -> query($insert_query);
-        } elseif ($current_attribute == 'email_address') {
-            $insert_query = "INSERT IGNORE INTO user
-                            (email_address)
-                            VALUES
-                            (\"{$new_value}\")";
-            $db -> query($insert_query);
-        }
+    // establishes AES credentials per query
+    $db -> exec("SET @block_encryption_mode = '". AESCONFIG . "'");
+    $db -> exec("SET @key_str = '". KEY_STR . "'");
+    $db -> exec("SET @init_vector = '". INNIT_VECTOR . "'");
 
-        // updates any value across all tables
+    // Updates record based on UI selection of update and condition attributes and their respective entered values
+    if ($current_attribute == "password"){
         $update_query = "UPDATE registry
-                        INNER JOIN user USING (email_address)
-                        INNER JOIN website USING (url)
-                        SET {$current_attribute}=\"{$new_value}\"
-                        WHERE {$query_attribute}=\"{$pattern}\"
+                        INNER JOIN user USING (user_id)
+                        INNER JOIN website USING (site_id)
+                        SET encrypted_password = AES_ENCRYPT(:new_value,'". KEY_STR . "', '". INNIT_VECTOR . "')
+                        WHERE {$query_attribute}= :pattern
                         ";
 
-        $db -> query($update_query);
+        $statement = $db->prepare($update_query);
+        $statement ->bindValue(':new_value', $new_value, PDO::PARAM_STR);
+        $statement->bindValue(':pattern', $pattern, PDO::PARAM_STR);
+        $statement -> execute();
+    } else {
+        $update_query = "UPDATE registry
+                        INNER JOIN user USING (user_id)
+                        INNER JOIN website USING (site_id)
+                        SET {$current_attribute}= AES_ENCRYPT(:new_value,'". KEY_STR . "', '". INNIT_VECTOR . "')
+                        WHERE {$query_attribute}= :pattern
+                        ";
+
+        $statement = $db->prepare($update_query);
+        $statement ->bindValue(':new_value', $new_value, PDO::PARAM_STR);
+        $statement->bindValue(':pattern', $pattern, PDO::PARAM_STR);
+        $statement -> execute();
+    }
 
 
-    } catch( PDOException $e ) {
-        echo '<p>The following message was generated by function <code>update</code>:</p>' . "\n";
+} catch( PDOException $e ) {
+    echo '<p>The following message was generated by function <code>update</code>:</p>' . "\n";
+    echo '<p id="error">' . $e -> getMessage() . '</p>' . "\n";
+
+    exit;
+}
+}
+
+// facilitates new records with field values generated from UI
+// currently "works" (new record accessible from mySQL CLI) but doesn't populate page
+function insert($site_name, $url, $user_name, $first_name,
+    $last_name, $email_address, $encrypted_password, $comment) {
+
+    global $db;
+
+    // establishes AES credentials per query
+    $db -> exec("SET @block_encryption_mode = '". AESCONFIG . "'");
+    $db -> exec("SET @key_str = '". KEY_STR . "'");
+    $db -> exec("SET @init_vector = '". INNIT_VECTOR . "'");
+
+    try {
+
+
+        // inserts into user using relevant UI entries
+        $user_query = "INSERT INTO user (first_name, last_name, email_address)
+                        VALUES (:first_name, :last_name, :email_address)";
+
+        $statement = $db->prepare($user_query);
+        $statement->bindValue(':first_name', $first_name, PDO::PARAM_STR);
+        $statement->bindValue(':last_name', $last_name, PDO::PARAM_STR);
+        $statement->bindValue(':email_address', $email_address, PDO::PARAM_STR);
+        $statement->execute();
+
+        $new_user_id = $db->lastInsertId();
+
+        // inserts into site using relevant UI entries
+        $site_query = "INSERT INTO website (site_name, url)
+                    VALUES (:site_name, :url)";
+
+        $statement = $db->prepare($site_query);
+        $statement -> bindValue(':site_name', $site_name, PDO::PARAM_STR);
+        $statement -> bindValue(':url', $url, PDO::PARAM_STR);
+        $statement -> execute();
+
+        $new_site_id = $db -> lastInsertId();
+
+        // inserts into registry using relevant UI entries
+        $registry_query = "INSERT INTO registry (user_id,
+                           site_id,
+                           encrypted_password,
+                           user_name,
+                           comment)
+                            VALUES (:user_id,
+                                    :site_id,
+                                    AES_ENCRYPT(:password,'". KEY_STR . "', '". INNIT_VECTOR . "'),
+                                    :user_name,
+                                    :comment)
+                         ";
+
+        $statement = $db->prepare($registry_query);
+        $statement->bindValue(':user_id', $new_user_id, PDO::PARAM_INT);
+        $statement->bindValue(':site_id', $new_site_id, PDO::PARAM_INT);
+        $statement->bindValue(':password', $encrypted_password, PDO::PARAM_STR);
+        $statement->bindValue(':user_name', $user_name, PDO::PARAM_STR);
+        $statement->bindValue(':comment', $comment, PDO::PARAM_STR);
+        $statement->execute();
+
+    } catch(PDOException $e) {
+        echo '<p>The following message was generated by function <code>insert</code>:</p>' . "\n";
         echo '<p id="error">' . $e -> getMessage() . '</p>' . "\n";
 
         exit;
     }
+}
+
+// facilitates removing records based on UI-specified attribute values
+function delete($current_attribute, $pattern) {
+try {
+    global $db;
+
+    // establishes AES credentials per query
+    $db -> exec("SET @block_encryption_mode = '". AESCONFIG . "'");
+    $db -> exec("SET @key_str = '". KEY_STR . "'");
+    $db -> exec("SET @init_vector = '". INNIT_VECTOR . "'");
+
+    // removes record(s) using UI input
+    if ($current_attribute == "password"){
+        $delete_query = "DELETE r
+                    FROM registry AS r
+                    INNER JOIN website USING (site_id)
+                    WHERE encrypted_password = AES_ENCRYPT(:password,'". KEY_STR . "', '". INNIT_VECTOR . "')
+                    ";
+        $statement = $db->prepare($delete_query);
+        $statement->bindValue(':password', $pattern, PDO::PARAM_STR);
+        $statement->execute();
+    } else {
+        $delete_query = "DELETE r
+                        FROM registry AS r
+                        INNER JOIN website USING (site_id)
+                        WHERE {$current_attribute}= \"{$pattern}\"
+                        ";
+        $db -> query($delete_query);
+    }
+} catch(PDOException $e) {
+    echo '<p>The following message was generated by function <code>delete</code>:</p>' . "\n";
+    echo '<p id="error">' . $e -> getMessage() . '</p>' . "\n";
+
+    exit;
+}
 }
