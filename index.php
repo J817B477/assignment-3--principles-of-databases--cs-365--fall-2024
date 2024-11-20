@@ -44,22 +44,22 @@ $title = "Student Password Locker";
                 break;
 
             case UPDATE:
-                if ((0 == $_POST['new-attribute']) && ("" == $_POST['pattern'])) {
+                if ((0 == $_POST['new-value']) && ("" == $_POST['pattern'])) {
                     echo '<div id="error">One or both fields were empty, ' .
                         'but both must be filled out. Please try again.</div>' . "\n";
                 } else {
-                    update($_POST['current-attribute'], $_POST['new-attribute'],
+                    update($_POST['current-attribute'], $_POST['new-value'],
                         $_POST['query-attribute'], $_POST['pattern']);
                 }
 
                 break;
 
             case INSERT:
-                if (("" == $_POST['artist-id']) || ("" == $_POST['artist-name'])) {
+                if (("" == $_POST['site-name']) || ("" == $_POST['url']) || ("" == $_POST['user-name']) || ("" == $_POST['first-name']) || ("" == $_POST['last-name'])|| ("" == $_POST['email-address']) || ("" == $_POST['encrypted-password']) || ("" == $_POST['comment'])) {
                     echo '<div id="error">At least one field in your insert request ' .
                         'is empty. Please try again.</div>' . "\n";
                 } else {
-                    insert($_POST['artist-id'],$_POST['artist-name']);
+                    insert($_POST['site-name'],$_POST['url'],$_POST['user-name'],$_POST['first-name'],$_POST['last-name'],$_POST['email-address'],$_POST['encrypted-password'],$_POST['comment']);
                 }
 
                 break;
@@ -107,8 +107,10 @@ $title = "Student Password Locker";
                 <option>first_name</option>
                 <option>last_name</option>
                 <option>email_address</option>
+                <option>password</option>
+                <option>comment</option>
             </select>
-            = <input type="text" name="new-attribute" required>
+            = <input type="text" name="new-value" required>
             WHERE
             <select name="query-attribute" id="query-attribute">
                 <option>site_name</option>
@@ -134,32 +136,29 @@ $title = "Student Password Locker";
                 VALUES:
                 </br>
                 <p>
-                    <input type="text" class="entry-field" placeholder="Site Name" required>
+                    <input type="text" name="site-name" class="entry-field" placeholder="Site Name" required>
                 </p>
 
                 <p>
-                    <input type="text" class="entry-field" placeholder="URL" required>
+                    <input type="text" name="url" class="entry-field" placeholder="URL" required>
                 </p>
                 <p>
-                    <input type="text" class="entry-field" placeholder="User Name" required>
+                    <input type="text" name="user-name" class="entry-field" placeholder="User Name" required>
                 </p>
                 <p>
-                    <input type="text" class="entry-field" placeholder="First Name" required>
+                    <input type="text" name="first-name" class="entry-field" placeholder="First Name" required>
                 </p>
                 <p>
-                    <input type="text" class="entry-field" placeholder="Last Name" required>
+                    <input type="text" name="last-name" class="entry-field" placeholder="Last Name" required>
                 </p>
                 <p>
-                    <input type="text" class="entry-field" placeholder="Email Address" required>
+                    <input type="text" name="email-address" class="entry-field" placeholder="Email Address" required>
                 </p>
                 <p>
-                    <input type="text" class="entry-field" placeholder="Email Address" required>
+                    <input type="text" name="encrypted-password" class="entry-field" placeholder="Website Password" required>
                 </p>
                 <p>
-                    <input type="text" class="entry-field" placeholder="Website Password" required>
-                </p>
-                <p>
-                    <input type="text" class="entry-field" placeholder="Registration Comment" required>
+                    <input type="text" name="comment" class="entry-field" placeholder="Registration Comment" required>
                 </p>
             <input type="hidden" name="submitted" value="3">
             <p><input type="submit" value="insert"></p>
@@ -177,6 +176,7 @@ $title = "Student Password Locker";
                 <option>first_name</option>
                 <option>last_name</option>
                 <option>email_address</option>
+                <option>password</option>
             </select>
             = <input type="text" name="pattern" required>
             <input type="hidden" name="submitted" value="4">
