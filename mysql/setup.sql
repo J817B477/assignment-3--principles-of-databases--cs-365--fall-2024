@@ -106,38 +106,3 @@ INSERT INTO website
     (4, 6, AES_ENCRYPT('free conferences', @key_str, @init_vector), 'Grant Sanderson'),
     (5, 7, AES_ENCRYPT('not funny material', @key_str, @init_vector), 'J.Johnson'),
     (5, 6, AES_ENCRYPT('comedy business', @key_str, @init_vector), 'Josh Johnson Comedy');
-
--- decryption procedures
-DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS sp_create_search_table()
-BEGIN
-
-  CREATE TABLE IF NOT EXISTS decrypted_registry (
-  registry_id SMALLINT,
-  user_id SMALLINT NOT NULL,
-  site_id SMALLINT NOT NULL,
-  decrypted_password VARCHAR(256),
-  user_name VARCHAR(65) NOT NULL,
-  timestamp TIMESTAMP(3),
-  comment VARCHAR(1000)
-  ) ENGINE=INNODB;
-
-
-  INSERT INTO decrypted_registry (registry_id, user_id, site_id,decrypted_password, user_name, timestamp, comment)
-  SELECT
-    registry_id,
-    user_id,
-    site_id,
-    CAST(AES_DECRYPT(encrypted_password, @key_str, @init_vector) AS CHAR),
-    user_name,
-    timestamp,
-    comment
-  FROM registry;
-END$$
-
-CREATE PROCEDURE IF NOT EXISTS sp_delete_search_table()
-BEGIN
-DROP TABLE decrypted_registry;
-END$$
-
-DELIMITER ;
