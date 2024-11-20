@@ -141,7 +141,6 @@ try {
 }
 
 // facilitates new records with field values generated from UI
-// currently "works" (new record accessible from mySQL CLI) but doesn't populate page
 function insert($site_name, $url, $user_name, $first_name,
     $last_name, $email_address, $encrypted_password, $comment) {
 
